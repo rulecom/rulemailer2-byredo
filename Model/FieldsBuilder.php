@@ -68,11 +68,13 @@ class FieldsBuilder
     {
         $products = [];
         foreach ($quote->getAllVisibleItems() as $item) {
-            $product = $item->getProduct();
+            $product = $item->getProduct()->load($item->getProduct()->getId());
 
             $products[] = [
                 'name' => $product->getName(),
                 'url' => $product->getProductUrl(),
+                'franchise_family' => $product->getData('franchise_family'),
+                'size' => $product->getData('size'),
                 'quantity' => $item->getQty(),
                 'price' => $item->getPrice(),
                 'image' => $quote->getStore()
