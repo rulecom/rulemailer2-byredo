@@ -68,13 +68,26 @@ class FieldsBuilder
     {
         $products = [];
         foreach ($quote->getAllVisibleItems() as $item) {
-            $product = $item->getProduct()->load($item->getProduct()->getId());
+            $product = $item->getProduct();//->load($item->getProduct()->getId());
+            $orderOptions = $item->getProduct()->getTypeInstance(true)
+                ->getOrderOptions($item->getProduct());
+            $options = isset($orderOptions['attributes_info']) ? $orderOptions['attributes_info'] : null;
+            $size = null;
+            if ($options) {
+                $sizeLabel = $product->getResource()->getAttribute('size')->getFrontend()->getLabel();
+                foreach ($options as $option) {
+                    if ($option['label'] == $sizeLabel) {
+                        $size = $option['value'];
+                    }
+                }
+            }
 
             $products[] = [
                 'name' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'franchise_family' => $product->getData('franchise_family'),
-                'size' => $product->getData('size'),
+                'franchise_family' => $product->getResource()->getAttribute('franchise_family')->getFrontend()->getValue
+                ($product),
+                'size' => $size,
                 'quantity' => $item->getQty(),
                 'price' => $item->getPrice(),
                 'image' => $quote->getStore()
