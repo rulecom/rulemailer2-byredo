@@ -12,7 +12,7 @@ class FieldsBuilder
         $fields = [
             ['key' => self::CART_GROUP . ".TotalPrice", 'value' => $quote->getSubtotal()],
             ['key' => self::CART_GROUP . ".Currency", 'value' => $quote->getQuoteCurrencyCode()],
-            ['key' => self::CART_GROUP . ".Products", 'value' => $this->getProductsJson($quote), 'type' => 'json']
+            ['key' => self::CART_GROUP . ".Products", 'value' => $this->getProductsJson($quote), 'type' => 'json'],
         ];
 
         return $fields;
@@ -85,18 +85,31 @@ class FieldsBuilder
             $products[] = [
                 'name' => $product->getName(),
                 'url' => $product->getProductUrl(),
-                'franchise_family' => $product->getResource()->getAttribute('franchise_family')->getFrontend()->getValue
-                ($product),
+                'franchise_family' => $product->getResource()
+                    ->getAttribute('franchise_family')->getFrontend()->getValue($product),
                 'size' => $size,
                 'quantity' => $item->getQty(),
                 'price' => $item->getPrice(),
-                'image' => $quote->getStore()
-                        ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA)
-                    . 'catalog/product' . $product->getImage()
+                'image' => $this->getProductImageUrl($product)
            ];
         }
 
         return json_encode($products, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+    }
+
+    protected function getProductImageUrl($product)
+    {
+        $imageUrl = null;
+        $categories = $product->getCategoryCollection();
+
+        foreach ($categories->getItems() as $category) {
+            $category = $category->load($category->getId());
+            if ($category->getImageUrl()) {
+                $imageUrl = $category->getImageUrl();
+            }
+        }
+
+        return $imageUrl;
     }
 
     protected function getProductCategories($quote)
