@@ -82,6 +82,9 @@ class FieldsBuilder
                 }
             }
 
+            $imageBaseUrl = $quote->getStore()
+                    ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA)
+                . 'catalog/product';
             $products[] = [
                 'name' => $product->getName(),
                 'url' => $product->getProductUrl(),
@@ -90,24 +93,16 @@ class FieldsBuilder
                 'size' => $size,
                 'quantity' => $item->getQty(),
                 'price' => $item->getPrice(),
-                'image' => $this->getProductImageUrl($product)
+                'image' => $imageBaseUrl . $this->getProductImagePath($product)
            ];
         }
 
         return json_encode($products, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
     }
 
-    protected function getProductImageUrl($product)
+    protected function getProductImagePath($product)
     {
-        $imageUrl = null;
-        $categories = $product->getCategoryCollection();
-
-        foreach ($categories->getItems() as $category) {
-            $category = $category->load($category->getId());
-            if ($category->getImageUrl()) {
-                $imageUrl = $category->getImageUrl();
-            }
-        }
+        $imageUrl = $product->load($product->getId())->getData('small_image');
 
         return $imageUrl;
     }
