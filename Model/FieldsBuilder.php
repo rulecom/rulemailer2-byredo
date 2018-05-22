@@ -1,18 +1,52 @@
-<?php namespace Rule\RuleMailer\Model;
+<?php 
+
+namespace Rule\RuleMailer\Model;
+
+use \Magento\Store\Model\StoreManagerInterface;
 
 class FieldsBuilder
 {
+    /**
+     * @var
+     */
     const SUBSCRIBER_GROUP = "User";
+
+    /**
+     * @var
+     */
     const CART_GROUP = "Cart";
+
+    /**
+     * @var
+     */
     const ORDER_GROUP = "Order";
+
+    /**
+     * @var
+     */
     const ADDRESS_GROUP = "Address";
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManagerInterface;
+
+    /**
+     * FieldsBuilder constructor.
+     *
+     * @param null $storeManagerInterface
+     */
+    public function __construct($storeManagerInterface = null)
+    {
+        $this->storeManagerInterface = $storeManagerInterface;
+    }
 
     public function buildCartFields($quote)
     {
         $fields = [
             ['key' => self::CART_GROUP . ".TotalPrice", 'value' => $quote->getSubtotal()],
             ['key' => self::CART_GROUP . ".Currency", 'value' => $quote->getQuoteCurrencyCode()],
-            ['key' => self::CART_GROUP . ".Products", 'value' => $this->getProductsJson($quote), 'type' => 'json'],
+            ['key' => self::CART_GROUP . ".Products", 'value' => $this->getProductsJson($quote), 'type' => 'json']
         ];
 
         return $fields;
@@ -40,7 +74,11 @@ class FieldsBuilder
             ['key' => self::ORDER_GROUP . ".StoreId", 'value' => $order->getStoreId()],
             ['key' => self::ORDER_GROUP . ".StoreName", 'value' => $order->getStore()->getName()],
             ['key' => self::ORDER_GROUP . ".Products", 'value' => $this->getProductsJson($quote), 'type' => 'json'],
-            ['key' => self::ORDER_GROUP . ".Categories", 'value' => $this->getProductCategories($quote), 'type' => 'multiple']
+            [
+                'key'   => self::ORDER_GROUP . ".Categories",
+                'value' => $this->getProductCategories($quote),
+                'type'  => 'multiple'
+            ]
         ];
 
         return $fields;
@@ -48,10 +86,15 @@ class FieldsBuilder
 
     public function buildCustomerFields($customer)
     {
-        $fields = [
-            ['key' => self::SUBSCRIBER_GROUP . ".Firstname", 'value' => $customer->getFirstname()],
-            ['key' => self::SUBSCRIBER_GROUP . ".Lastname", 'value' => $customer->getLastname()]
-        ];
+        $fields = [];
+
+        if ($customer->getFirstname()) {
+            $fields[] = ['key' => self::SUBSCRIBER_GROUP . ".Firstname", 'value' => $customer->getFirstname()];
+        }
+
+        if ($customer->getLastname()) {
+            $fields[] = ['key' => self::SUBSCRIBER_GROUP . ".Lastname", 'value' => $customer->getLastname()];
+        }
 
         if ($customer->getDob()) {
             $fields[] = ['key' => self::SUBSCRIBER_GROUP . ".BirthDate", 'value' => $customer->getDob()];
